@@ -19,15 +19,19 @@
 #ifndef _SMB2_H_
 #define _SMB2_H_
 
-#include <smb2/smb2-errors.h>
+#ifdef __APPLE__ /* Some platforms goes well without stdint.h include */
+#include <sys/_types/_time_t.h>
+#endif
+
+#include "smb2-errors.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct smb2_timeval {
-        uint32_t tv_sec;
-        uint32_t tv_usec;
+        time_t tv_sec;
+        uint64_t tv_usec;
 };
 
 #define SMB2_ERROR_REPLY_SIZE 9
@@ -479,6 +483,7 @@ struct smb2_read_reply {
 #define SMB2_FILE_BASIC_INFORMATION             0x04
 #define SMB2_FILE_STANDARD_INFORMATION          0x05
 #define SMB2_FILE_RENAME_INFORMATION            0x0a
+#define SMB2_FILE_DISPOSITION_INFORMATION       0x0d
 #define SMB2_FILE_ALL_INFORMATION               0x12
 #define SMB2_FILE_END_OF_FILE_INFORMATION       0x14
 
@@ -559,6 +564,13 @@ struct smb2_query_info_request {
  */
 struct smb2_file_end_of_file_info {
         uint64_t end_of_file;
+};
+
+/*
+ * FILE_DISPOSITION_INFORMATION.
+ */
+struct smb2_file_disposition_info {
+        uint8_t delete_pending;
 };
 
 /*
@@ -647,11 +659,11 @@ struct smb2_ace {
          * SMB2_DENIED_ALLOWED_CALLBACK_ACE_TYPE,
          * SMB2_SYSTEM_RESOURCE_ATTRIBUTE_ACE_TYPE
          */
-        int   ad_len;
+        size_t   ad_len;
         char *ad_data;
 
         /* raw blob, used for unknown ACE types */
-        int   raw_len;
+        size_t   raw_len;
         char *raw_data;
 };
 
